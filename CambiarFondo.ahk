@@ -1,20 +1,37 @@
-SetNext()
+bLogs := true
+if(bLogs)
+{
+  FileCreateDir, logs
+}
+FileCreateDir, wallpapers
+SetNext(bLogs)
 
-;Si descomentas esto puedes cambiar el fondo de pantalla pulsando ctrl+F1 cada vez que quieras
+;Si descomentas esto puedes cambiar el fondo de pantalla pulsando escribiendo la cadena cada vez que quieras
 ;Pero el script se mantendra en ejecucion en segundo plano
 ;⬇️⬇️⬇️⬇️⬇️⬇️
-;^F1::
-;  SetNext()
-;Return
+:R*?:CBF::
+  SetNext(bLogs)
+Return
 
-SetNext()
+SetNext(bLogs)
 {
+  if(bLogs)
+  {
+    FormatTime, fecha,, dd-MM-yy
+    FormatTime, hora,, HH:mm:ss
+    FileAppend, [%hora%]: Se arranca el script.`n, %A_WorkingDir%\logs\%fecha%.txt  
+  }
   FileList := []
-  Loop, Files, C:\RUTA\* ;Sustituir por la ruta de la carpeta donde tengas las imagenes con * para que use todas las imagenes o .jpg para coger solo jpg, .png solo para png, etc...
+  Loop, Files,  %A_WorkingDir%\wallpapers\* ;Sustituir por la ruta de la carpeta donde tengas las imagenes con * para que use todas las imagenes o .jpg para coger solo jpg, .png solo para png, etc...
   {
     FileList.Insert(A_LoopFileFullPath)
   }
   num :=  Filelist.MaxIndex()
+  if(bLogs)
+  {
+    FormatTime, hora,, HH:mm:ss
+    FileAppend, [%hora%]: Archivos encontrados %num%.`n, %A_WorkingDir%\logs\%fecha%.txt
+  }
   Random, rand, 1, num
   background_file := % FileList[rand]
   Needle = abc
@@ -22,12 +39,12 @@ SetNext()
   ;IfInString, background_file, desktop.ini
   ;{
   ;  FileRecycle, %background_file%
-  ;  SetNext()   
+  ;  SetNext(bLogsbLogs)   
   ;}
   
   IfInString, background_file, dual
   {
-    SetWallpaperStyle("Mosaico")    
+    SetWallpaperStyle("Mosaico")
   }
   else
   {
@@ -36,12 +53,23 @@ SetNext()
   DllCall("SystemParametersInfo", UInt, 0x14, UInt, 0, Str, background_file, UInt, 2)
   name_array := StrSplit(background_file, "\", ".")
   name := % name_array[name_array.MaxIndex()]
-  MsgBox, 4, SUBE ESO AL TAG seleccionado %name%, Se ve bien?,
+  if(bLogs)
+  {
+    FormatTime, hora,, HH:mm:ss
+    FileAppend, [%hora%]: Se setea el archivo %rand% : %name%.`n, %A_WorkingDir%\logs\%fecha%.txt
+  }
+  MsgBox, 4, File %name%, Se ve bien?,
   IfMsgBox Yes
     Return
   else
     FileRecycle, %background_file%
-    SetNext()
+    FileDelete, %background_file%
+    if(bLogs)
+    {
+      FormatTime, hora,, HH:mm:ss
+      FileAppend, [%hora%]: Se elimina el archivo %name%.`n, %A_WorkingDir%\logs\%fecha%.txt
+    }
+    SetNext(bLogs)
 }
 
 SetWallpaperStyle(style)
